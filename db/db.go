@@ -31,6 +31,11 @@ func InitDB() {
 }
 
 func createTables() {
+	createTodoTable()
+	createUserTable()
+}
+
+func createTodoTable() {
 	// Create todo table
 	todoTableQueryString := `
 	CREATE TABLE IF NOT EXISTS todos(
@@ -41,5 +46,20 @@ func createTables() {
 	_, err := DB.Exec(todoTableQueryString)
 	if err != nil {
 		panic("Could not create todo table: " + err.Error())
+	}
+}
+
+func createUserTable() {
+	// Create user table
+	userTableQueryString := `
+	CREATE TABLE IF NOT EXISTS users(
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		email TEXT NOT NULL,
+		password TEXT NOT NULL
+	)
+	`
+	_, err := DB.Exec(userTableQueryString)
+	if err != nil {
+		panic("Could not create users table: " + err.Error())
 	}
 }
