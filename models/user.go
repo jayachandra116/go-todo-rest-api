@@ -1,7 +1,10 @@
 package models
 
 import (
+	"errors"
+
 	"example.com/todo/db"
+	"example.com/todo/utils"
 )
 
 type User struct {
@@ -61,6 +64,24 @@ func (u *User) Delete() error {
 	defer stmt.Close()
 	_, err = stmt.Exec(u.ID)
 	return err
+}
+
+func (user *User) ValidateCredentials() error {
+	query := `
+	SELECT id, password from users
+	WHERE email = ?
+	`
+	row := db.DB.QueryRow(query, user.Email)
+	var retrievedPassword string
+	err := row.Scan(&user.ID, &retrievedPassword)
+	if err != nil {
+		return err
+	}
+	passwordIsValid := utils.CheckPasswordHash(user.Password, retrievedPassword)
+	if !passwordIsValid {
+		return errors.New("credentials Invalid")
+	}
+	return nil
 }
 
 func GetUserById(id int64) (*User, error) {

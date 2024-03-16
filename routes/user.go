@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"example.com/todo/models"
+	"example.com/todo/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,12 @@ func createNewUser(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not parse request body", "error": err.Error()})
 		return
 	}
+	hashedPassword, err := utils.GetHashedPassword(user.Password)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not hash user password", "error": err.Error()})
+		return
+	}
+	user.Password = hashedPassword
 	err = user.Save()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not create user", "error": err.Error()})
@@ -119,4 +126,20 @@ func changeUserPassword(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, gin.H{"message": "Changed password successfully"})
+}
+
+func loginUser(context *gin.Context) {
+	var err error
+	var user models.User
+	err = context.ShouldBindJSON(&user)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse login request data", "error": err.Error()})
+		return
+	}
+	err = user.ValidateCredentials()
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "could not authenticate user"})
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }

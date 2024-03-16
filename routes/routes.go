@@ -26,7 +26,9 @@ func registerTodoRoutes(server *gin.Engine) {
 
 func registerUserRoutes(server *gin.Engine) {
 	// Create a new user
-	server.POST("/users", createNewUser)
+	server.POST("/users/signup", createNewUser)
+	// Login existing user
+	server.POST("/users/login", loginUser)
 	// Get user by Id
 	server.GET("/users/byId/:id", getUserById)
 	// Get user by email
