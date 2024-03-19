@@ -1,12 +1,22 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"example.com/todo/db"
 	"example.com/todo/routes"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+
+	// Get port address from env
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		fmt.Println("PORT environment variable not set!, Defaulting to 8080")
+	}
 
 	// Initialize DB
 	db.InitDB()
@@ -18,6 +28,6 @@ func main() {
 	routes.RegisterRoutes(server)
 
 	// Start listening for requests
-	server.Run(":8080")
-
+	fmt.Println("Listening on port: ", port)
+	server.Run(":" + port)
 }
