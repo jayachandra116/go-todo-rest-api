@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,19 +12,23 @@ const secretKey = "supersecretkey"
 
 // Creates a new token from user's email and userId
 func GenerateToken(email string, userId int64) (string, error) {
-	token := jwt.NewWithClaims(
-		jwt.SigningMethodHS256,
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"email":  email,
-			"userId": userId,
-			"exp":    time.Now().Add(time.Hour * 2).Unix(),
+			"sub":   userId,
+			"exp":   time.Now().Add(time.Hour * 24).Unix(),
+			"email": email,
 		})
-	return token.SignedString([]byte(secretKey))
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }
 
-// return users's userId if the token is valid
-func VerifyToken(token string) (int64, error) {
-	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
+// return users's userId,nil if the token is valid or nil,err
+func VerifyToken(tokenString string) (int64, error) {
+	fmt.Println("Token: ", tokenString)
+	parsedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, errors.New("unexpected SignatureMethod")
@@ -42,8 +47,6 @@ func VerifyToken(token string) (int64, error) {
 	if !ok {
 		return 0, errors.New("invalid token claims")
 	}
-	// email := claims["email"].(string)
-	userId, _ := claims["user_id"].(int64)
+	userId := int64(claims["sub"].(float64))
 	return userId, nil
-
 }
